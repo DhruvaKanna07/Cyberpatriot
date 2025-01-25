@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Script to handle odd but important Linux security tasks
+# Note: Run this script with root privileges
+
+# 1. Check Hidden Files in User Directories
+echo "Checking for hidden files in user directories..."
+for user_dir in /home/*; do
+    if [ -d "$user_dir" ]; then
+        echo "Hidden files in $user_dir:"
+        find "$user_dir" -name ".*" -type f
+    fi
+done
+
+# 2. Find and Fix World-Writable Directories
+echo "Finding and fixing world-writable directories..."
+find / -type d -perm -o+w 2>/dev/null | while read dir; do
+    echo "Fixing permissions for directory: $dir"
+    chmod o-w "$dir"
+done
+
+echo "World-writable directories have been fixed."
+
+# 3. Review Aliases for Suspicious Entries
+echo "Reviewing shell aliases..."
+aliases=$(alias)
+if [ -n "$aliases" ]; then
+    echo "Current aliases:"
+    echo "$aliases"
+else
+    echo "No aliases found."
+fi
+
+# 4. Audit Open Ports
+echo "Auditing open ports..."
+sudo netstat -tuln
+
+# 5. Review Cron Jobs for All Users
+echo "Reviewing cron jobs for all users..."
+for user in $(cut -f1 -d: /etc/passwd); do
+    echo "Cron jobs for user: $user"
+    sudo crontab -u $user -l 2>/dev/null || echo "No cron jobs for $user."
+done
+
+# 6. Check File Associations for Unusual Configurations
+echo "Checking file associations..."
+assoc_output=$(ls -l /etc/ | grep "\.\..*")
+if [ -n "$assoc_output" ]; then
+    echo "Potential odd config  noted"
+ 
+ 
+ 
